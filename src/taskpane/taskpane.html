@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Team Views Manager</title>
+
+    <!-- Office JavaScript API -->
+    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="taskpane.css">
+</head>
+
+<body>
+    <div id="app">
+        <h2>Team Ansichten Manager</h2>
+        <div class="button-container">
+            <button id="btnTeamLager" class="button">Team Lager</button>
+            <button id="btnTeamSM" class="button">Team SM</button>
+            <button id="btnTeamTechnik" class="button">Team Technik</button>
+            <button id="btnConfigureView" class="button-config">Einstellungen</button>
+        </div>
+
+        <!-- Configuration Dialog -->
+        <div id="configDialog" class="dialog" style="display: none;">
+            <div class="dialog-content">
+                <h2>Team Ansicht Verwalten</h2>
+                <select id="teamSelect" class="full-width">
+                    <option value="Team_Lager">Team Lager</option>
+                    <option value="Team_SM">Team SM</option>
+                    <option value="Team_Technik">Team Technik</option>
+                </select>
+                <div id="sheetConfig"></div>
+                <div class="button-container">
+                    <button id="btnAddSheet" class="button-config">Arbeitsblattansicht hinzufügen</button>
+                    <button id="btnSaveConfig" class="button-config">Speichern</button>
+                    <button id="btnCloseDialog" class="button-config">Dialog Schließen</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Message Display -->
+        <div id="messageDisplay" class="message-display"></div>
+    </div>
+    <script src="taskpane.js"></script>
+</body>
+</html>
