@@ -1,6 +1,50 @@
 // The property key where we'll store our team configurations
 const TEAM_CONFIGS_PROPERTY = "TeamViewConfigurations";
 
+/**
+ * Validates column input format (e.g., "A,B,C")
+ * @param {string} input - The column input string to validate
+ * @returns {Object} Object containing validation result and error message
+ */
+function validateColumnInput(input) {
+  if (!input || input.trim() === "") {
+    return {
+      isValid: false,
+      message: "Bitte geben Sie mindestens eine Spalte ein.",
+    };
+  }
+
+  // Remove any whitespace and convert to uppercase
+  const sanitizedInput = sanitizeColumnInput(input);
+
+  // Check if the input contains only letters and commas
+  const validFormat = /^[A-Z]+(,[A-Z]+)*$/.test(sanitizedInput);
+
+  if (!validFormat) {
+    return {
+      isValid: false,
+      message: "Ungültiges Format. Bitte verwenden Sie nur Buchstaben und Kommas (A,B,C).",
+    };
+  }
+
+  return {
+    isValid: true,
+    sanitizedValue: sanitizedInput,
+  };
+}
+
+/**
+ * Sanitizes column input by removing whitespace and converting to uppercase
+ * @param {string} input - The column input string to sanitize
+ * @returns {string} Sanitized input string
+ */
+function sanitizeColumnInput(input) {
+  return input
+    .replace(/\s+/g, "") // Remove all whitespace
+    .toUpperCase() // Convert to uppercase
+    .replace(/[^A-Z,]/g, ""); // Remove any characters that aren't letters or commas
+}
+
 // Initialize Office JS
 Office.onReady((info) => {
   if (info.host === Office.HostType.Excel) {
@@ -139,7 +183,7 @@ async function addSheetConfiguration() {
 }
 
 /**
- * Creates UI elements for sheet configuration
+ * Creates UI elements for sheet configuration with input validation
  * @param {HTMLElement} container - Container element
  * @param {string[]} sheets - Available worksheet names
  * @param {Object} config - Existing configuration
@@ -148,19 +192,43 @@ async function addSheetConfiguration() {
 function addSheetConfigurationUI(container, sheets, config, index) {
   const div = document.createElement("div");
   div.className = "sheet-config";
+
+  const columnsValue = config ? config.visibleColumns.join(",") : "";
+  const sanitizedColumnsValue = config ? sanitizeColumnInput(columnsValue) : "";
+
   div.innerHTML = `
-        <select class="sheet-select full-width">
-            ${sheets
-              .map(
-                (sheet) =>
-                  `<option value="${sheet}" ${config && config.sheetName === sheet ? "selected" : ""}>${sheet}</option>`
-              )
-              .join("")}
-        </select>
-        <input type="text" class="columns-input" placeholder="Angezeigte Spalten (z.B., A,C,E)" 
-               value="${config ? config.visibleColumns.join(",") : ""}">
-        <button class="button-remove" onclick="removeSheetConfig(${index})">Löschen</button>
-    `;
+    <select class="sheet-select full-width">
+      ${sheets
+        .map(
+          (sheet) =>
+            `<option value="${sheet}" ${config && config.sheetName === sheet ? "selected" : ""}>${sheet}</option>`
+        )
+        .join("")}
+    </select>
+    <input type="text" class="columns-input" placeholder="Angezeigte Spalten (z.B., A,C,E)" 
+           value="${sanitizedColumnsValue}">
+    <div class="input-error" style="display: none; color: red; font-size: 0.8em;"></div>
+    <button class="button-remove" onclick="removeSheetConfig(${index})">Löschen</button>
+  `;
+
+  // Add input validation event listener
+  const columnsInput = div.querySelector(".columns-input");
+  const errorDiv = div.querySelector(".input-error");
+
+  columnsInput.addEventListener("input", (event) => {
+    const validation = validateColumnInput(event.target.value);
+
+    if (!validation.isValid) {
+      errorDiv.textContent = validation.message;
+      errorDiv.style.display = "block";
+      columnsInput.classList.add("input-error");
+    } else {
+      errorDiv.style.display = "none";
+      columnsInput.classList.remove("input-error");
+      columnsInput.value = validation.sanitizedValue;
+    }
+  });
+
   container.appendChild(div);
 }
 
@@ -202,20 +270,32 @@ async function saveConfiguration() {
     const sheetConfigs = document.getElementsByClassName("sheet-config");
     const configs = await loadSettingsFromStorage();
 
-    configs[teamKey] = Array.from(sheetConfigs).map((config) => {
+    // Validate all inputs before saving
+    let hasErrors = false;
+    const newConfigs = Array.from(sheetConfigs).map((config) => {
       const sheetName = config.querySelector(".sheet-select").value;
-      const visibleColumns = config
-        .querySelector(".columns-input")
-        .value.split(",")
-        .map((col) => col.trim())
-        .filter((col) => col);
+      const columnsInput = config.querySelector(".columns-input").value;
+
+      const validation = validateColumnInput(columnsInput);
+      if (!validation.isValid) {
+        hasErrors = true;
+        showError(validation.message);
+        return null;
+      }
 
       return {
         sheetName,
-        visibleColumns,
+        visibleColumns: validation.sanitizedValue.split(","),
         viewName: `TVM_${teamKey}`,
       };
     });
+
+    if (hasErrors) {
+      return;
+    }
+
+    // Filter out any null values from failed validations
+    configs[teamKey] = newConfigs.filter((config) => config !== null);
 
     await saveSettingsToStorage(configs);
     showSuccess("Einstellungen erfolgreich gespeichert!");
