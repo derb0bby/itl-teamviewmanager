@@ -272,12 +272,20 @@ async function applyTeamView(teamKey) {
         // Hide all columns first
         for (let i = 1; i <= usedRange.columnCount; i++) {
           const columnLetter = getColumnLetter(i);
-          sheet.getRange(`${columnLetter}:${columnLetter}`).columnHidden = true;
+          try {
+            sheet.getRange(`${columnLetter}:${columnLetter}`).columnHidden = true;
+          } catch (error) {
+            console.error(`Error hidding column (${columnLetter}:${columnLetter})`, error);
+          }
         }
 
         // Show only the specified columns
         config.visibleColumns.forEach((colLetter) => {
-          sheet.getRange(`${colLetter}:${colLetter}`).columnHidden = false;
+          try {
+            sheet.getRange(`${colLetter}:${colLetter}`).columnHidden = false;
+          } catch (error) {
+            console.error(`Error showing column (${colLetter}:${colLetter})`, error);
+          }
         });
 
         await context.sync();
@@ -287,7 +295,7 @@ async function applyTeamView(teamKey) {
     });
   } catch (error) {
     if (error instanceof OfficeExtension.Error) {
-      console.error("Office Extenstion Error:", JSON.stringify(error.debugInfo));
+      console.error("Office Extenstion Error:", JSON.stringify(error.stack));
       showError(
         "Fehler aufgetreten. Um Ansichten anwenden zu können, muss sich die Datei auf einem Sharepoint oder OneDrive befinden."
       );
