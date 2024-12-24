@@ -126,3 +126,8 @@ h2 {
   color: #a4262c;
   border: 1px solid #a4262c;
 }
+
+.input-error {
+  margin-top: 2px;
+  margin-bottom: 8px;
+}

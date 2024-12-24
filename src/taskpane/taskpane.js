@@ -1,35 +1,52 @@
-// The property key where we'll store our team configurations
+/**
+ * Constants
+ */
 const TEAM_CONFIGS_PROPERTY = "TeamViewConfigurations";
+const EXCEL_LIMITS = {
+  MAX_COLUMN_LENGTH: 3, // Maximum characters in column reference (AAA)
+  MAX_COLUMN_NUMBER: 16384, // Excel's maximum column (XFD)
+  LAST_COLUMN_NAME: "XFD", // Excel's last column name
+};
 
 /**
- * Validates column input format (e.g., "A,B,C")
- * @param {string} input - The column input string to validate
- * @returns {Object} Object containing validation result and error message
+ * Converts Excel column letter to number (e.g., 'A' -> 1, 'AA' -> 27)
+ * @param {string} column - Column letter (e.g., 'A', 'BC', 'XFD')
+ * @returns {number} Column number
  */
-function validateColumnInput(input) {
-  if (!input || input.trim() === "") {
+function convertColumnLetterToNumber(column) {
+  let result = 0;
+  for (let i = 0; i < column.length; i++) {
+    result *= 26;
+    result += column.charCodeAt(i) - "A".charCodeAt(0) + 1;
+  }
+  return result;
+}
+
+/**
+ * Validates a single column reference
+ * @param {string} column - Single column reference to validate
+ * @returns {Object} Validation result and error message
+ */
+function validateSingleColumn(column) {
+  // Check column length
+  if (column.length > EXCEL_LIMITS.MAX_COLUMN_LENGTH) {
     return {
       isValid: false,
-      message: "Bitte geben Sie mindestens eine Spalte ein.",
+      message: `Ungültige Spaltenreferenz: ${column}. Spalten dürfen maximal ${EXCEL_LIMITS.MAX_COLUMN_LENGTH} Buchstaben lang sein.`,
     };
   }
 
-  // Remove any whitespace and convert to uppercase
-  const sanitizedInput = sanitizeColumnInput(input);
-
-  // Check if the input contains only letters and commas
-  const validFormat = /^[A-Z]+(,[A-Z]+)*$/.test(sanitizedInput);
-
-  if (!validFormat) {
+  // Check if column is within Excel's limits
+  const columnNumber = convertColumnLetterToNumber(column);
+  if (columnNumber > EXCEL_LIMITS.MAX_COLUMN_NUMBER) {
     return {
       isValid: false,
-      message: "Ungültiges Format. Bitte verwenden Sie nur Buchstaben und Kommas (A,B,C).",
+      message: `Spalte ${column} liegt außerhalb des gültigen Excel-Bereichs (max. ${EXCEL_LIMITS.LAST_COLUMN_NAME}).`,
     };
   }
 
   return {
     isValid: true,
-    sanitizedValue: sanitizedInput,
   };
 }
 
@@ -42,7 +59,61 @@ function sanitizeColumnInput(input) {
   return input
     .replace(/\s+/g, "") // Remove all whitespace
     .toUpperCase() // Convert to uppercase
-    .replace(/[^A-Z,]/g, ""); // Remove any characters that aren't letters or commas
+    .replace(/[^A-Z,]/g, "") // Remove any characters that aren't letters or commas
+    .replace(/,+/g, ","); // Replace multiple consecutive commas with a single comma
+  // .replace(/^,|,$/g, ""); // Remove leading and trailing commas
+}
+
+/**
+ * Validates column input format
+ * @param {string} input - The column input string to validate
+ * @returns {Object} Object containing validation result and error message
+ */
+function validateColumnInput(input) {
+  if (!input || input.trim() === "") {
+    return {
+      isValid: false,
+      message: "Bitte geben Sie mindestens eine Spalte an.",
+    };
+  }
+
+  // Remove any whitespace and convert to uppercase
+  const sanitizedInput = sanitizeColumnInput(input);
+
+  // Basic format check (letters and commas)
+  const validFormat = /^[A-Z]+(,[A-Z]+)*$/.test(sanitizedInput);
+  if (!validFormat) {
+    return {
+      isValid: false,
+      message: "Ungültiges Format. Bitte verwenden Sie nur Buchstaben und Kommas (z.B., A,B,C).",
+    };
+  }
+
+  // Split into individual columns
+  const columns = sanitizedInput.split(",");
+
+  // Validate each column reference
+  for (const column of columns) {
+    // Check for empty column references
+    if (column.length === 0) {
+      return {
+        isValid: false,
+        message: "Leere Spaltenreferenz gefunden. Bitte überprüfen Sie die Kommas (z.B., A,,B,C).",
+      };
+    }
+
+    // Validate column format and limits
+    const columnValidation = validateSingleColumn(column);
+    if (!columnValidation.isValid) {
+      return columnValidation;
+    }
+  }
+
+  return {
+    isValid: true,
+    sanitizedValue: sanitizedInput,
+    columns: columns,
+  };
 }
 
 // Initialize Office JS
@@ -205,7 +276,7 @@ function addSheetConfigurationUI(container, sheets, config, index) {
         )
         .join("")}
     </select>
-    <input type="text" class="columns-input" placeholder="Angezeigte Spalten (z.B., A,C,E)" 
+    <input type="text" class="columns-input" placeholder="Sichtbare Spalten (z.B., A,C,E)" 
            value="${sanitizedColumnsValue}">
     <div class="input-error" style="display: none; color: red; font-size: 0.8em;"></div>
     <button class="button-remove" onclick="removeSheetConfig(${index})">Löschen</button>
