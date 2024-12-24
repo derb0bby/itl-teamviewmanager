@@ -2,24 +2,32 @@
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   margin: 20px;
   min-width: 150px;
+  max-width: 450px;
   font-size: small;
 }
 
 h2 {
   font-size: larger;
 }
+
+button {
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  margin: 2px 0px;
+  cursor: pointer;
+  width: 100%;
+  border-radius: 4px;
+
+  transition: background-color 0.167s cubic-bezier(0.4, 0, 0.2, 1) 0s, box-shadow 0.167s cubic-bezier(0.4, 0, 0.2, 1) 0s,
+    color 0.167s cubic-bezier(0.4, 0, 0.2, 1) 0s;
+}
+
 .button {
   background-color: #222226;
   border: none;
   color: white;
-  padding: 8px 16px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  margin: 4px 2px;
-  cursor: pointer;
-  width: 100%;
-  border-radius: 4px;
+  padding: 10px 16px;
 }
 .button:hover {
   background-color: #414147;
@@ -30,26 +38,34 @@ h2 {
   flex-direction: column;
   gap: 10px;
   margin: 10px 0;
-  max-width: 250px;
+  /* max-width: 250px; */
 }
 
 .button-config {
-  padding: 8px 16px;
-  background-color: #0078d4;
+  padding: 10px 20px;
+  background-color: #0a66c2;
   color: white;
   border: none;
   cursor: pointer;
+}
+
+.button-config:hover,
+.button-config:focus {
+  background-color: #16437e;
+  color: #ffffff;
 }
 
 .button-config:hover {
   background-color: #106ebe;
 }
 .button-remove {
-  padding: 8px 16px;
+  margin-top: 4px;
+  padding: 6px 12px;
   background-color: #a4262c;
   color: white;
   border: none;
   cursor: pointer;
+  font-size: smaller;
 }
 
 .button-remove:hover {
@@ -88,6 +104,10 @@ h2 {
   border-radius: 4px;
 }
 
+.sheet-select {
+  font-size: smaller;
+}
+
 .full-width {
   width: 100%;
   padding: 8px;
@@ -100,8 +120,9 @@ h2 {
   padding: 8px;
   margin: 5px 0;
   box-sizing: border-box;
-  border: 1px solid #ccc;
+  border: 1px solid #9b9b9b;
   border-radius: 2px;
+  font-size: smaller;
 }
 
 /* Message Display */
