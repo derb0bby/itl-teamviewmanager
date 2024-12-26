@@ -4,7 +4,7 @@
   xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
   xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="TaskPaneApp">
 
-  <Id>12345678-1234-1234-1234-123456789012</Id>
+  <Id>56f8a5c8-67f9-480e-9dd7-d14ae0ac165c</Id>
   <Version>1.0.0.0</Version>
   <ProviderName>ITL Logistics</ProviderName>
   <DefaultLocale>de-DE</DefaultLocale>
