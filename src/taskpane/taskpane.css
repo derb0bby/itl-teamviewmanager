@@ -152,3 +152,9 @@ button {
   margin-top: 2px;
   margin-bottom: 8px;
 }
+
+.team-management {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+}

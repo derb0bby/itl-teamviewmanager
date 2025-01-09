@@ -1,7 +1,10 @@
 /**
  * Constants
  */
-const TEAM_CONFIGS_PROPERTY = "TeamViewConfigurations";
+const Ansicht_CONFIGS_PROPERTY = "AnsichtViewConfigurations";
+const DEFAULT_CONFIG = {
+  "Ansicht 1": [],
+}; // Default name for a new Ansicht
 const EXCEL_LIMITS = {
   MAX_COLUMN_LENGTH: 3, // Maximum characters in column reference (AAA)
   MAX_COLUMN_NUMBER: 16384, // Excel's maximum column (XFD)
@@ -120,14 +123,23 @@ function validateColumnInput(input) {
 Office.onReady((info) => {
   if (info.host === Office.HostType.Excel) {
     // Set up event handlers for existing buttons
-    document.getElementById("btnTeamLager").onclick = () => applyTeamView("Team_Lager");
-    document.getElementById("btnTeamSM").onclick = () => applyTeamView("Team_SM");
-    document.getElementById("btnTeamTechnik").onclick = () => applyTeamView("Team_Technik");
+
+    // document.getElementById("btnAnsichtLager").onclick = () => applyAnsichtView("Ansicht_Lager");
+    // document.getElementById("btnAnsichtSM").onclick = () => applyAnsichtView("Ansicht_SM");
+    // document.getElementById("btnAnsichtTechnik").onclick = () => applyAnsichtView("Ansicht_Technik");
     document.getElementById("btnConfigureView").onclick = showConfigurationDialog;
     document.getElementById("btnCloseDialog").onclick = hideConfigurationDialog;
     document.getElementById("btnSaveConfig").onclick = saveConfiguration;
     document.getElementById("btnAddSheet").onclick = addSheetConfiguration;
-    document.getElementById("teamSelect").onchange = loadTeamConfiguration;
+    document.getElementById("AnsichtSelect").onchange = loadAnsichtConfiguration;
+
+    document.getElementById("btnAddAnsicht").onclick = addAnsicht;
+    document.getElementById("btnRenameAnsicht").onclick = renameAnsicht;
+    document.getElementById("btnDeleteAnsicht").onclick = deleteAnsicht;
+    document.getElementById("btnConfirmAddAnsicht").onclick = confirmAddAnsicht;
+    document.getElementById("btnConfirmRenameAnsicht").onclick = confirmRenameAnsicht;
+
+    updateAnsichtSelectOptions(); // Load existing configuration and create Ansicht buttons
   }
 });
 
@@ -138,9 +150,9 @@ async function showConfigurationDialog() {
   const dialog = document.getElementById("configDialog");
   dialog.style.display = "flex";
 
-  // Load current team's configuration
-  const teamSelect = document.getElementById("teamSelect");
-  await loadTeamConfiguration(teamSelect.value);
+  // Load current Ansicht's configuration
+  const AnsichtSelect = document.getElementById("AnsichtSelect");
+  await loadAnsichtConfiguration(AnsichtSelect.value);
 }
 
 /**
@@ -152,34 +164,27 @@ function hideConfigurationDialog() {
 
 /**
  * Loads configurations from workbook custom properties
- * @returns {Promise<Object>} The team configurations
+ * @returns {Promise<Object>} The Ansicht configurations
  */
+
 /**
  * Loads configurations from the Office.context.document.settings property bag.
  * Returns the stored configuration object or default values if none exist.
  */
 async function loadSettingsFromStorage() {
   try {
-    const storedConfig = Office.context.document.settings.get(TEAM_CONFIGS_PROPERTY);
+    const storedConfig = Office.context.document.settings.get(Ansicht_CONFIGS_PROPERTY);
 
     if (!storedConfig) {
       // Return default empty configuration if no configuration exists
-      return {
-        Team_Lager: [],
-        Team_SM: [],
-        Team_Technik: [],
-      };
+      return DEFAULT_CONFIG;
     }
 
     return JSON.parse(storedConfig); // Parse and return the stored configuration
   } catch (error) {
     console.error("Error loading configurations:", error);
     showError("Error loading configurations");
-    return {
-      Team_Lager: [],
-      Team_SM: [],
-      Team_Technik: [],
-    };
+    return DEFAULT_CONFIG;
   }
 }
 
@@ -204,7 +209,7 @@ async function saveSettingsToStorage(configs) {
     }
 
     // Save the JSON string as a single setting
-    Office.context.document.settings.set(TEAM_CONFIGS_PROPERTY, jsonString);
+    Office.context.document.settings.set(Ansicht_CONFIGS_PROPERTY, jsonString);
 
     // Persist the changes to the document
     Office.context.document.settings.saveAsync(function (asyncResult) {
@@ -224,12 +229,12 @@ async function saveSettingsToStorage(configs) {
 }
 
 /**
- * Loads configuration for a specific team
+ * Loads configuration for a specific Ansicht
  */
-async function loadTeamConfiguration() {
-  const teamKey = document.getElementById("teamSelect").value;
+async function loadAnsichtConfiguration() {
+  const AnsichtKey = document.getElementById("AnsichtSelect").value;
   const configs = await loadSettingsFromStorage();
-  const teamConfig = configs[teamKey] || [];
+  const AnsichtConfig = configs[AnsichtKey] || [];
 
   // Get available sheets
   const sheets = await getWorksheetNames();
@@ -239,7 +244,7 @@ async function loadTeamConfiguration() {
   sheetConfig.innerHTML = "";
 
   // Create configuration UI for each sheet
-  teamConfig.forEach((config, index) => {
+  AnsichtConfig.forEach((config, index) => {
     addSheetConfigurationUI(sheetConfig, sheets, config, index);
   });
 }
@@ -337,7 +342,7 @@ async function getWorksheetNames() {
  */
 async function saveConfiguration() {
   try {
-    const teamKey = document.getElementById("teamSelect").value;
+    const AnsichtKey = document.getElementById("AnsichtSelect").value;
     const sheetConfigs = document.getElementsByClassName("sheet-config");
     const configs = await loadSettingsFromStorage();
 
@@ -357,7 +362,7 @@ async function saveConfiguration() {
       return {
         sheetName,
         visibleColumns: validation.sanitizedValue.split(","),
-        viewName: `TVM_${teamKey}`,
+        viewName: `TVM_${AnsichtKey}`,
       };
     });
 
@@ -366,7 +371,7 @@ async function saveConfiguration() {
     }
 
     // Filter out any null values from failed validations
-    configs[teamKey] = newConfigs.filter((config) => config !== null);
+    configs[AnsichtKey] = newConfigs.filter((config) => config !== null);
 
     await saveSettingsToStorage(configs);
     showSuccess("Einstellungen erfolgreich gespeichert!");
@@ -377,21 +382,21 @@ async function saveConfiguration() {
 }
 
 /**
- * Applies view settings for a specific team
- * @param {string} teamKey - Key to identify team configuration
+ * Applies view settings for a specific Ansicht
+ * @param {string} AnsichtKey - Key to identify Ansicht configuration
  */
-async function applyTeamView(teamKey) {
+async function applyAnsichtView(AnsichtKey) {
   try {
     const configs = await loadSettingsFromStorage();
-    const teamConfigs = configs[teamKey];
+    const AnsichtConfigs = configs[AnsichtKey];
 
-    if (!teamConfigs || teamConfigs.length === 0) {
-      showError("Keine Konfiguration für dieses Team gefunden. Bitte konfigurieren Sie zuerst die Ansicht.");
+    if (!AnsichtConfigs || AnsichtConfigs.length === 0) {
+      showError("Keine Konfiguration für dieses Ansicht gefunden. Bitte konfigurieren Sie zuerst die Ansicht.");
       return;
     }
 
     await Excel.run(async (context) => {
-      for (const config of teamConfigs) {
+      for (const config of AnsichtConfigs) {
         const sheet = context.workbook.worksheets.getItem(config.sheetName);
 
         // Load all named sheet views to check if the view alreadz exists
@@ -490,6 +495,103 @@ function showError(message, type = "error") {
   setTimeout(() => {
     messageDisplay.style.display = "none";
   }, 3000);
+}
+
+// Delete selected Ansicht configuration
+async function deleteAnsicht() {
+  const AnsichtSelect = document.getElementById("AnsichtSelect");
+  const selectedAnsicht = AnsichtSelect.value;
+
+  if (selectedAnsicht) {
+    const configs = await loadSettingsFromStorage();
+    delete configs[selectedAnsicht];
+    await saveSettingsToStorage(configs);
+    updateAnsichtSelectOptions();
+    showSuccess(`Ansicht "${selectedAnsicht}" wurde gelöscht.`);
+  }
+}
+
+async function renameAnsicht() {
+  document.getElementById("AnsichtManagement").style.display = "flex";
+  document.getElementById("btnConfirmRenameAnsicht").style.display = "flex";
+  document.getElementById("btnConfirmAddAnsicht").style.display = "none";
+}
+
+// Function to handle initiating Ansicht rename
+async function confirmRenameAnsicht() {
+  const AnsichtSelect = document.getElementById("AnsichtSelect");
+  const AnsichtInput = document.getElementById("AnsichtInput").value.trim();
+
+  const oldAnsichtName = AnsichtSelect.value;
+
+  const configs = await loadSettingsFromStorage();
+
+  if (!configs.hasOwnProperty(AnsichtInput)) {
+    configs[AnsichtInput] = configs[oldAnsichtName];
+    delete configs[oldAnsichtName];
+    await saveSettingsToStorage(configs);
+    document.getElementById("AnsichtManagement").style.display = "none";
+    updateAnsichtSelectOptions();
+    showSuccess(`Ansicht wurde in "${AnsichtInput}" umbenannt.`);
+  } else {
+    showError("Ein Ansicht mit diesem Namen existiert bereits.");
+    return;
+  }
+}
+
+async function addAnsicht() {
+  document.getElementById("AnsichtManagement").style.display = "flex";
+  document.getElementById("btnConfirmRenameAnsicht").style.display = "none";
+  document.getElementById("btnConfirmAddAnsicht").style.display = "flex";
+}
+
+// Confirm adding or renaming Ansicht
+async function confirmAddAnsicht() {
+  const AnsichtInput = document.getElementById("AnsichtInput").value.trim();
+  const configs = await loadSettingsFromStorage();
+
+  if (!AnsichtInput) {
+    showError("Bitte geben Sie einen gültigen Ansichtnamen ein.");
+    return;
+  }
+
+  if (!configs.hasOwnProperty(AnsichtInput)) {
+    configs[AnsichtInput] = [];
+    await saveSettingsToStorage(configs);
+    document.getElementById("AnsichtManagement").style.display = "none";
+    updateAnsichtSelectOptions();
+    showSuccess(`Ansicht "${AnsichtInput}" wurde hinzugefügt.`);
+  } else {
+    showError("Dieses Ansicht existiert bereits.");
+    return;
+  }
+}
+
+// Update the Ansicht select dropdown options
+async function updateAnsichtSelectOptions() {
+  const AnsichtSelect = document.getElementById("AnsichtSelect");
+  const AnsichtButtonsContainer = document.getElementById("AnsichtButtonsContainer");
+  const configs = await loadSettingsFromStorage();
+
+  // Clear existing options and buttons
+  AnsichtSelect.innerHTML = "";
+  AnsichtButtonsContainer.innerHTML = "";
+
+  Object.keys(configs).forEach((Ansicht) => {
+    // Populate dropdown
+    const option = document.createElement("option");
+    option.value = Ansicht;
+    option.textContent = Ansicht;
+    AnsichtSelect.appendChild(option);
+
+    // Create Ansicht button
+    const button = document.createElement("button");
+    button.id = `btn${Ansicht}`;
+    button.className = "button";
+    button.textContent = Ansicht;
+    button.onclick = () => applyAnsichtView(Ansicht);
+    AnsichtButtonsContainer.appendChild(button);
+  });
 }
 
 /**
