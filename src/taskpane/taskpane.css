@@ -1,128 +1,219 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+
+/* Root Element Styles */
+:root {
+  --primary-color: #5670a7;
+  --primary-hover-color: #425988;
+  --secondary-color: #f4f4f4;
+  --text-color: #333333;
+  --error-color: #a4262c;
+  --error-background: #fde7e9;
+  --success-color: #107c10;
+  --success-background: #dff6dd;
+  --border-radius: 6px;
+}
+
+/* General Layout */
 #app {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  margin: 20px;
-  min-width: 150px;
-  max-width: 450px;
-  font-size: small;
+  font-size: x-small;
+  margin: 1.5rem;
+  min-width: 200px;
+  max-width: 500px;
+  color: var(--text-color);
 }
 
 h2 {
-  font-size: larger;
+  margin: 0;
+  font-size: small;
 }
 
+h3 {
+  margin: 0 0 4px 0;
+}
+
+/* Button Styles */
 button {
   text-align: center;
   text-decoration: none;
   display: inline-block;
-  margin: 2px 0px;
   cursor: pointer;
-  width: 100%;
-  border-radius: 4px;
-
-  transition: background-color 0.167s cubic-bezier(0.4, 0, 0.2, 1) 0s, box-shadow 0.167s cubic-bezier(0.4, 0, 0.2, 1) 0s,
-    color 0.167s cubic-bezier(0.4, 0, 0.2, 1) 0s;
-}
-
-.button {
-  background-color: #222226;
+  padding: 8px 4px;
+  border-radius: var(--border-radius);
+  font-size: small;
   border: none;
-  color: white;
-  padding: 10px 16px;
-}
-.button:hover {
-  background-color: #414147;
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.button-container {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin: 10px 0;
-  /* max-width: 250px; */
+button:hover {
+  background-color: #d9d9d9;
+}
+
+#btnConfigureView {
+  background-color: var(--primary-color);
+  color: white;
+  font-size: x-small;
+  padding: 0.315rem 1.5rem;
 }
 
 .button-config {
-  padding: 10px 20px;
-  background-color: #0a66c2;
+  background-color: var(--primary-color);
   color: white;
-  border: none;
-  cursor: pointer;
+  font-size: x-small;
+  padding: 0.315rem 1.5rem;
 }
 
 .button-config:hover,
 .button-config:focus {
-  background-color: #16437e;
-  color: #ffffff;
+  background-color: var(--primary-hover-color);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-.button-config:hover {
-  background-color: #106ebe;
-}
 .button-remove {
-  margin-top: 4px;
-  padding: 6px 12px;
-  background-color: #a4262c;
+  background-color: var(--error-color);
   color: white;
-  border: none;
-  cursor: pointer;
-  font-size: smaller;
+  padding: 0.315rem 1.5rem;
+  font-size: x-small;
 }
 
 .button-remove:hover {
   background-color: #761a1f;
 }
+
+.sheet-config {
+  margin-bottom: 8px;
+}
+
+.sheet-config > .button-remove {
+  margin-top: 0;
+  font-size: xx-small;
+  padding: 4px 8px;
+}
+
+.sheet-config > .sheet-select {
+  height: 20px;
+}
+
+input {
+  width: 100%;
+  height: 20px;
+  padding: 4px 8px;
+  margin: 8px 0;
+  font-size: x-small;
+}
+
+.ansichten-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.ansichten-select-container {
+  display: flex;
+  gap: 8px;
+  flex-direction: column;
+  width: 80%;
+  margin-bottom: 16px;
+}
+
+.section-padding {
+  padding: 8px 8px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.Ansicht-management {
+  display: flex;
+  flex-direction: column;
+  border: solid 1px lightgray;
+}
+
+.ansicht-container {
+  margin-bottom: 16px;
+}
+
+.ansicht-menu-wrapper {
+  margin-top: 4px;
+}
+
+.button-text {
+  padding: 4px 8px;
+  margin: 0;
+  font-weight: 700;
+  font-size: 8px;
+}
+
+label {
+  display: inline-block;
+  font-size: 10px;
+  margin-bottom: 4px;
+}
+
+select {
+  background-color: transparent;
+  border: solid 1px lightgrey;
+  padding: 0 1em 0 0;
+  margin: 0;
+  width: 100%;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: inherit;
+  line-height: inherit;
+  outline: none;
+}
+
+.sheet-select {
+}
+
+#btnConfirmAddAnsicht,
+#btnConfirmRenameAnsicht {
+  align-self: flex-end;
+}
+
 /* Dialog Styles */
 .dialog {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
+  min-width: 240px;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  padding: 8px;
+  background-color: rgba(0, 0, 0, 0.6);
   display: none;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  overflow: scroll;
 }
 
 .dialog-content {
-  background: white;
-  padding: 20px;
-  border-radius: 4px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  max-width: 80%;
-  width: 400px;
-  max-height: 80vh;
-  overflow-y: auto;
+  background-color: var(--secondary-color);
+  padding: 16px;
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
-/* Sheet Configuration Styles */
-.sheet-config {
-  margin: 10px 0;
-  padding: 10px;
-  border: 1px solid #eee;
-  border-radius: 4px;
+.dialog-content-header {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
 }
 
-.sheet-select {
-  font-size: smaller;
-}
-
-.full-width {
-  width: 100%;
-  padding: 8px;
-  margin: 5px 0;
-  box-sizing: border-box;
-}
-
-.columns-input {
-  width: 100%;
-  padding: 8px;
-  margin: 5px 0;
-  box-sizing: border-box;
-  border: 1px solid #9b9b9b;
-  border-radius: 2px;
-  font-size: smaller;
+.config-container {
+  max-height: 160px;
+  overflow-y: scroll;
+  border: solid lightgray;
+  padding: 4px 4px;
+  margin-bottom: 16px;
 }
 
 /* Message Display */
@@ -130,31 +221,49 @@ button {
   position: fixed;
   bottom: 20px;
   right: 20px;
-  padding: 10px 20px;
-  border-radius: 4px;
+  padding: 1rem 1.5rem;
+  border-radius: var(--border-radius);
+  font-size: small
   display: none;
   z-index: 2000;
 }
 
 .message-success {
-  background-color: #dff6dd;
-  color: #107c10;
-  border: 1px solid #107c10;
+  background-color: var(--success-background);
+  color: var(--success-color);
+  border: 1px solid var(--success-color);
 }
 
 .message-error {
-  background-color: #fde7e9;
-  color: #a4262c;
-  border: 1px solid #a4262c;
+  background-color: var(--error-background);
+  color: var(--error-color);
+  border: 1px solid var(--error-color);
 }
 
-.input-error {
-  margin-top: 2px;
-  margin-bottom: 8px;
+.button-close {
+  width: 1rem;
+  height: 1rem;
+  padding: 0;
+  margin: 0;
+  /* position: absolute; */
+  top: 1rem;
+  right: 1rem;
+  cursor: pointer;
 }
 
-.team-management {
-  margin-top: 10px;
-  display: flex;
-  gap: 8px;
+.button-close::before,
+.button-close::after {
+    content: '';
+    width: 1px;
+    height: 100%;
+    background: #333;
+    display: inline-block;
+    transform: rotate(45deg) translateX(0px);
+    /* position: absolute; */
+    left: 50%;
+    top: 0;
+}
+
+.button-close::after {
+  transform: rotate(-45deg) translateX(0px);
 }

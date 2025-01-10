@@ -129,6 +129,7 @@ Office.onReady((info) => {
     // document.getElementById("btnAnsichtTechnik").onclick = () => applyAnsichtView("Ansicht_Technik");
     document.getElementById("btnConfigureView").onclick = showConfigurationDialog;
     document.getElementById("btnCloseDialog").onclick = hideConfigurationDialog;
+    document.getElementById("btnCloseAnsichtManagementDialog").onclick = hideAnsichtManagementDialog;
     document.getElementById("btnSaveConfig").onclick = saveConfiguration;
     document.getElementById("btnAddSheet").onclick = addSheetConfiguration;
     document.getElementById("AnsichtSelect").onchange = loadAnsichtConfiguration;
@@ -148,7 +149,7 @@ Office.onReady((info) => {
  */
 async function showConfigurationDialog() {
   const dialog = document.getElementById("configDialog");
-  dialog.style.display = "flex";
+  dialog.style.display = "block";
 
   // Load current Ansicht's configuration
   const AnsichtSelect = document.getElementById("AnsichtSelect");
@@ -160,6 +161,12 @@ async function showConfigurationDialog() {
  */
 function hideConfigurationDialog() {
   document.getElementById("configDialog").style.display = "none";
+  document.getElementById("AnsichtManagement").style.display = "none";
+}
+
+function hideAnsichtManagementDialog() {
+  document.getElementById("AnsichtManagement").style.display = "none";
+  document.getElementById("AnsichtInput").value = "";
 }
 
 /**
@@ -543,6 +550,7 @@ async function addAnsicht() {
   document.getElementById("AnsichtManagement").style.display = "flex";
   document.getElementById("btnConfirmRenameAnsicht").style.display = "none";
   document.getElementById("btnConfirmAddAnsicht").style.display = "flex";
+  document.getElementById("AnsichtInput").value = "";
 }
 
 // Confirm adding or renaming Ansicht
