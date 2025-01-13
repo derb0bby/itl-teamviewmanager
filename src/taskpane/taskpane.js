@@ -11,6 +11,14 @@ const EXCEL_LIMITS = {
   LAST_COLUMN_NAME: "XFD", // Excel's last column name
 };
 
+// Modal Config
+const isOpenClass = "modal-is-open";
+const openingClass = "modal-is-opening";
+const closingClass = "modal-is-closing";
+const scrollbarWidthCssVar = "--pico-scrollbar-width";
+const animationDuration = 400; // ms
+let visibleModal = null;
+
 /**
  * Converts Excel column letter to number (e.g., 'A' -> 1, 'AA' -> 27)
  * @param {string} column - Column letter (e.g., 'A', 'BC', 'XFD')
@@ -137,6 +145,7 @@ Office.onReady((info) => {
     document.getElementById("btnAddAnsicht").onclick = addAnsicht;
     document.getElementById("btnRenameAnsicht").onclick = renameAnsicht;
     document.getElementById("btnDeleteAnsicht").onclick = deleteAnsicht;
+    document.getElementById("btnCloseModal").onclick = toggleModal;
     document.getElementById("btnConfirmAddAnsicht").onclick = confirmAddAnsicht;
     document.getElementById("btnConfirmRenameAnsicht").onclick = confirmRenameAnsicht;
 
@@ -280,7 +289,7 @@ function addSheetConfigurationUI(container, sheets, config, index) {
   const sanitizedColumnsValue = config ? sanitizeColumnInput(columnsValue) : "";
 
   div.innerHTML = `
-    <select class="sheet-select full-width">
+    <select class="sheet-select">
       ${sheets
         .map(
           (sheet) =>
@@ -288,7 +297,7 @@ function addSheetConfigurationUI(container, sheets, config, index) {
         )
         .join("")}
     </select>
-    <input type="text" class="columns-input" placeholder="Sichtbare Spalten (z.B., A,C,E)" 
+    <input type="text" id="columnSpecification" class="columns-input" placeholder="Sichtbare Spalten (z.B., A,C,E)" 
            value="${sanitizedColumnsValue}">
     <div class="input-error" style="display: none; color: red; font-size: 0.8em;"></div>
     <button class="button-remove" onclick="removeSheetConfig(${index})">Löschen</button>
@@ -505,7 +514,7 @@ function showError(message, type = "error") {
 }
 
 // Delete selected Ansicht configuration
-async function deleteAnsicht() {
+async function deleteAnsicht(event) {
   const AnsichtSelect = document.getElementById("AnsichtSelect");
   const selectedAnsicht = AnsichtSelect.value;
 
@@ -514,6 +523,7 @@ async function deleteAnsicht() {
     delete configs[selectedAnsicht];
     await saveSettingsToStorage(configs);
     updateAnsichtSelectOptions();
+    toggleModal(event);
     showSuccess(`Ansicht "${selectedAnsicht}" wurde gelöscht.`);
   }
 }
@@ -595,7 +605,7 @@ async function updateAnsichtSelectOptions() {
     // Create Ansicht button
     const button = document.createElement("button");
     button.id = `btn${Ansicht}`;
-    button.className = "button";
+    button.className = "button is-view";
     button.textContent = Ansicht;
     button.onclick = () => applyAnsichtView(Ansicht);
     AnsichtButtonsContainer.appendChild(button);
@@ -609,3 +619,64 @@ async function updateAnsichtSelectOptions() {
 function showSuccess(message) {
   showError(message, "success");
 }
+
+// Toggle modal
+const toggleModal = (event) => {
+  event.preventDefault();
+  const modal = document.getElementById(event.currentTarget.dataset.target);
+  if (!modal) return;
+  modal && (modal.open ? closeModal(modal) : openModal(modal));
+};
+
+// Open modal
+const openModal = (modal) => {
+  const { documentElement: html } = document;
+  const scrollbarWidth = getScrollbarWidth();
+  if (scrollbarWidth) {
+    html.style.setProperty(scrollbarWidthCssVar, `${scrollbarWidth}px`);
+  }
+  html.classList.add(isOpenClass, openingClass);
+  setTimeout(() => {
+    visibleModal = modal;
+    html.classList.remove(openingClass);
+  }, animationDuration);
+  modal.showModal();
+};
+
+// Close modal
+const closeModal = (modal) => {
+  visibleModal = null;
+  const { documentElement: html } = document;
+  html.classList.add(closingClass);
+  setTimeout(() => {
+    html.classList.remove(closingClass, isOpenClass);
+    html.style.removeProperty(scrollbarWidthCssVar);
+    modal.close();
+  }, animationDuration);
+};
+
+// Close with a click outside
+document.addEventListener("click", (event) => {
+  if (visibleModal === null) return;
+  const modalContent = visibleModal.querySelector("article");
+  const isClickInside = modalContent.contains(event.target);
+  !isClickInside && closeModal(visibleModal);
+});
+
+// Close with Esc key
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && visibleModal) {
+    closeModal(visibleModal);
+  }
+});
+
+// Get scrollbar width
+const getScrollbarWidth = () => {
+  const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+  return scrollbarWidth;
+};
+
+// Is scrollbar visible
+const isScrollbarVisible = () => {
+  return document.body.scrollHeight > screen.height;
+};
