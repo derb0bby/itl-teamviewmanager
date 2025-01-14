@@ -4,46 +4,106 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Team Views Manager</title>
+    <meta name="color-scheme" content="light dark">
+    <title>Ansichten Manager</title>
 
     <!-- Office JavaScript API -->
     <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
 
     <!-- CSS -->
+    <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+    >
+    <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.colors.min.css"
+    >
     <link rel="stylesheet" href="https://derb0bby.github.io/itl-teamviewmanager/src/taskpane/taskpane.css">
 </head>
 
 <body>
     <div id="app">
-        <h2>Team Ansichten Manager</h2>
-        <div class="button-container">
-            <button id="btnTeamLager" class="button">Team Lager</button>
-            <button id="btnTeamSM" class="button">Team SM</button>
-            <button id="btnTeamTechnik" class="button">Team Technik</button>
-            <button id="btnConfigureView" class="button-config">Einstellungen</button>
+        <div class="ansichten-container">
+            <h2>Ansichten</h2>
+            <div id="AnsichtButtonsContainer" class="ansichten-select-container">
+                <!-- Ansicht buttons will be rendered dynamically -->
+            </div>
+            <button id="btnConfigureView" class="outline secondary button-config">Einstellungen</button>
         </div>
 
         <!-- Configuration Dialog -->
         <div id="configDialog" class="dialog" style="display: none;">
             <div class="dialog-content">
-                <h2>Team Ansicht Verwalten</h2>
-                <select id="teamSelect" class="full-width">
-                    <option value="Team_Lager">Team Lager</option>
-                    <option value="Team_SM">Team SM</option>
-                    <option value="Team_Technik">Team Technik</option>
-                </select>
-                <div id="sheetConfig"></div>
-                <div class="button-container">
-                    <button id="btnAddSheet" class="button-config">Arbeitsblattansicht hinzufügen</button>
+                <div class="dialog-content-header">
+                    <h2>Ansichten Verwalten</h2>
+                    <button id="btnCloseDialog" class="button-close" type="close"></button>
+                </div>
+                <div class="ansicht-container">
+                    <div>
+                        <label for="AnsichtSelect">Ausgewählte Ansicht</label>
+                        <select id="AnsichtSelect"></select>
+                    </div>
+                    <div class="ansicht-menu-wrapper">
+                        <button id="btnAddAnsicht" class="outline secondary button-text">Neu</button>
+                        <button id="btnRenameAnsicht" class="outline secondary button-text">Umbenennen</button>
+                        <!-- <button id="btnDeleteAnsicht" class="button-text button-remove">Löschen</button> -->
+                        <button class="button-text button-remove" data-target="removeViewConfirmationDialog" onclick="toggleModal(event)">Löschen</button>
+
+                </div>
+
+                <!-- Ansicht Management Input -->
+                <div id="AnsichtManagement" class="Ansicht-management section-padding" style="display: none;">
+                    <button id="btnCloseAnsichtManagementDialog" class="button-close" type="close"></button>
+                    <input id="AnsichtInput" class="columns-input" placeholder="Ansichtname eingeben" />
+                    <button id="btnConfirmAddAnsicht" class="secondary button-config">Hinzufügen</button>
+                    <button id="btnConfirmRenameAnsicht" class="secondary button-config">Umbenennen</button>
+                </div>
+
+                <div class="column-container">
+                <h3>Spaltendefinitionen</h3> 
+                <button id="btnAddSheet" class="outline secondary button-text">+ Spaltenansicht</button>
+                <div class="config-container">
+                    <div id="sheetConfig" class="sheet-config-section"></div>
+                </div>
+                </div>
+
+                <div class="footer">
                     <button id="btnSaveConfig" class="button-config">Speichern</button>
-                    <button id="btnCloseDialog" class="button-config">Dialog Schließen</button>
                 </div>
             </div>
         </div>
 
-        <!-- Message Display -->
-        <div id="messageDisplay" class="message-display"></div>
+        <!-- Remove Confirmation Modal -->
+        <dialog id="removeViewConfirmationDialog">
+            <article>
+              <header>
+                <button
+                  aria-label="Close"
+                  rel="prev"
+                  data-target="removeViewConfirmationDialog"
+                  onclick="toggleModal(event)"
+                ></button>
+                <h3>Löschvorgang bestätigen</h3>
+              </header>
+              <p>
+                Bist du sicher das du die Löschaktion ausführen möchtest?.
+              </p>
+              <footer>
+                <button id="btnCloseModal"
+                  role="button"
+                  class="secondary"
+                  data-target="removeViewConfirmationDialog"
+                >
+                  Abbrechen</button
+                ><button id="btnDeleteAnsicht" autofocus data-target="removeViewConfirmationDialog">Bestätigen</button>
+              </footer>
+            </article>
+        </dialog>
+
     </div>
+    <!-- Message Display -->
+    <div id="messageDisplay" class="message-display"></div>
     <script src="https://derb0bby.github.io/itl-teamviewmanager/src/taskpane/taskpane.js"></script>
 </body>
 </html>
